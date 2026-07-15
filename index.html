@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我家囤货清单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fb;
+            padding: 12px 12px 80px 12px;
+            color: #1e293b;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header .badge {
+            background: #e2e8f0;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            touch-action: manipulation;
+            white-space: nowrap;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: #2563eb;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:active {
+            background: #dc2626;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #475569;
+        }
+
+        .btn-add {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-add:active {
+            background: #16a34a;
+        }
+
+        .btn-sm {
+            padding: 2px 8px;
+            font-size: 11px;
+            height: 24px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar select,
+        .filter-bar input {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            background: white;
+            height: 28px;
+        }
+
+        .filter-bar .filter-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .filter-bar .spacer {
+            flex: 1;
+            min-width: 4px;
+        }
+
+        .filter-bar .divider {
+            color: #d1d5db;
+            font-size: 14px;
+            font-weight: 200;
+            padding: 0 2px;
+            user-select: none;
+        }
+
+        .timer-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+
+        .timer-inline .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 2px;
+        }
+
+        .timer-inline .status-dot.running {
+            background: #22c55e;
+        }
+
+        .timer-inline .status-dot.saving {
+            background: #f59e0b;
+            animation: blink 0.5s infinite;
+        }
+
+        .timer-inline .countdown {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .stats {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .stats .stat-item {
+            background: white;
+            padding: 2px 8px;
+            border-radius: 14px;
+            font-size: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            transition: 0.15s;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .stats .stat-item:hover {
+            background: #e2e8f0;
+        }
+
+        .stats .stat-item.active {
+            background: #d1d5db;
+            box-shadow: 0 0 0 2px #94a3b8;
+        }
+
+        .stats .stat-item span {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .category-tags .cat-tag {
+            cursor: pointer;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: #475569;
+            white-space: nowrap;
+            transition: 0.15s;
+            user-select: none;
+        }
+
+        .category-tags .cat-tag:hover {
+            background: #e2e8f0;
+        }
+
+        .category-tags .cat-tag.active {
+            background: #d1d5db;
+        }
+
+        .category-tags .cat-tag .count {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .item-card {
+            background: white;
+            border-radius: 8px;
+            padding: 6px 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .item-card .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .item-card .info-row {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 6px 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            flex: 1;
+            min-width: 0;
+            padding: 2px 0;
+        }
+
+        .item-card .info-row::-webkit-scrollbar {
+            height: 2px;
+        }
+
+        .item-card .info-row::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 2px;
+        }
+
+        .item-card .info-row .name {
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .item-card .info-row .category-tag {
+            font-size: 11px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 0 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .item-card .info-row .meta-item {
+            font-size: 12px;
+            color: #64748b;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .item-card .info-row .meta-item.tag {
+            background: #f1f5f9;
+            padding: 0 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #334155;
+        }
+
+        .item-card .actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .item-card .actions .btn {
+            padding: 2px 4px;
+            font-size: 13px;
+            height: 24px;
+            min-width: 24px;
+        }
+
+        .empty {
+            text-align: center;
+            color: #94a3b8;
+            padding: 30px 0;
+            font-size: 14px;
+        }
+
+        .footer-tip {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 14px;
+            padding: 10px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .data-source-tip {
+            font-size: 11px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 10px;
+            border-radius: 14px;
+            display: inline-block;
+            cursor: default;
+            height: 24px;
+            line-height: 24px;
+        }
+
+        .data-source-tip strong {
+            color: #16a34a;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 16px 16px 16px;
+            max-width: 480px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.95) translateY(12px);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-box .modal-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-box .modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 0 4px;
+        }
+
+        .modal-box .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .modal-box .form-row .full {
+            grid-column: 1 / -1;
+        }
+
+        .modal-box label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fafbfc;
+            font-family: inherit;
+        }
+
+        .modal-box input:focus,
+        .modal-box select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .modal-box .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 480px) {
+            .modal-box .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 16px;
+            }
+
+            .modal-box {
+                padding: 14px 12px 12px 12px;
+            }
+
+            .filter-bar .btn {
+                font-size: 11px;
+                padding: 2px 8px;
+                height: 26px;
+            }
+
+            .filter-bar select,
+            .filter-bar input {
+                font-size: 11px;
+                padding: 3px 6px;
+                height: 26px;
+            }
+
+            .filter-bar .divider {
+                font-size: 12px;
+            }
+        }
+
+        @media (orientation: landscape) {
+            .modal-box .form-row {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            .modal-box .form-row .full {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>📦 我家囤货清单</h1>
+        <span class="badge" id="countBadge">0 件</span>
+    </div>
+
+    <div class="stats" id="statsContainer"></div>
+
+    <div class="filter-bar">
+        <span class="filter-label">🔍</span>
+        <select id="filterCategory" onchange="render()">
+            <option value="">全部</option>
+            <option value="个护">🧴 个护</option>
+            <option value="化妆品">💄 化妆品</option>
+            <option value="清洁">🧹 清洁</option>
+            <option value="药品">💊 药品</option>
+            <option value="猫咪">🐱 猫咪</option>
+            <option value="衣物">👗 衣物</option>
+            <option value="厨房">🍽️ 厨房</option>
+            <option value="杂物">📦 杂物</option>
+            <option value="闲置">🔵 闲置</option>
+        </select>
+        <select id="statusFilter" onchange="render()">
+            <option value="">全部状态</option>
+            <option value="🟢">🟢 正常</option>
+            <option value="🟡">🟡 优先消耗</option>
+            <option value="🔵">🔵 闲置</option>
+        </select>
+        <input type="text" id="filterKeyword" placeholder="搜名称..." style="flex:1; min-width:60px; max-width:120px;"
+            oninput="render()">
+        <button class="btn btn-outline btn-sm" onclick="clearFilters()">清除</button>
+        <span class="divider">|</span>
+        <button class="btn btn-add btn-sm" onclick="openAddModal()">＋新增</button>
+        <button class="btn btn-outline btn-sm" onclick="exportData()">📤导出</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('fileInput').click()">📥导入文件</button>
+        <input type="file" id="fileInput" accept=".json" onchange="importFile(event)">
+        <span class="spacer"></span>
+        <span class="data-source-tip">📁 <strong id="dataSourceLabel">加载中...</strong></span>
+        <span class="divider">|</span>
+        <span class="timer-inline">
+            <span class="status-dot running" id="timerDot"></span>
+            <span id="timerLabel">⏱ 每3分钟提醒备份</span>
+            <span style="margin-left:8px; color:#94a3b8;">⏳ <span class="countdown"
+                    id="countdownDisplay">3:00</span></span>
+        </span>
+    </div>
+
+    <div class="list" id="itemList">
+        <div class="empty">📭 暂无物品，点击「＋新增」添加</div>
+    </div>
+
+    <div class="footer-tip">
+        📌 数据保存在浏览器本地 · 每3分钟提醒备份 · 建议定期手动导出备份
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <div class="modal-title">
+                <span id="modalTitle">✏️ 新增物品</span>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>品类分区</label>
+                    <select id="mCategory">
+                        <option value="个护">🧴 个护</option>
+                        <option value="化妆品">💄 化妆品</option>
+                        <option value="清洁">🧹 清洁</option>
+                        <option value="药品">💊 药品</option>
+                        <option value="猫咪">🐱 猫咪</option>
+                        <option value="衣物">👗 衣物</option>
+                        <option value="厨房">🍽️ 厨房</option>
+                        <option value="杂物">📦 杂物</option>
+                        <option value="闲置">🔵 闲置</option>
+                    </select>
+                </div>
+                <div>
+                    <label>具体物品 *</label>
+                    <input type="text" id="mName" placeholder="如：洗面奶">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>数量</label>
+                    <input type="number" id="mQty" placeholder="0" value="1">
+                </div>
+                <div>
+                    <label>入手价 (元)</label>
+                    <input type="text" id="mPrice" placeholder="如：89">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>色号/过期日/规格</label>
+                    <input type="text" id="mSpec" placeholder="如：2026.12 / 2kg">
+                </div>
+                <div>
+                    <label>状态</label>
+                    <select id="mStatus">
+                        <option value="🟢 正常">🟢 正常</option>
+                        <option value="🟡 优先消耗">🟡 优先消耗</option>
+                        <option value="🔴 有存货">🔴 有存货</option>
+                        <option value="🔵 闲置">🔵 闲置</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label>原因</label>
+                    <select id="mReason">
+                        <option value="">— 请选择 —</option>
+                        <option value="用完不再买">用完不再买</option>
+                        <option value="优先消耗">优先消耗</option>
+                        <option value="暂不处理">暂不处理</option>
+                        <option value="已送人">已送人</option>
+                        <option value="已转卖">已转卖</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div>
+                    <label>上次使用日期</label>
+                    <input type="date" id="mLastUsed">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="full">
+                    <label>备注</label>
+                    <input type="text" id="mNote" placeholder="存放位置或其他备注">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-primary" id="modalSaveBtn" onclick="saveModalItem()">💾 保存</button>
+                <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                <span id="modalEditHint" style="font-size:12px; color:#94a3b8; align-self:center;"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====== 数据 ======
+        let items = [];
+        let editingId = null;
+        let isNewMode = false;
+        const STORAGE_KEY = 'myStockList';
+        const DATA_FILE = 'data.json';
+
+        // ====== 定时器 ======
+        let timerInterval = null;
+        let countdownSeconds = 180;
+        let currentCountdown = 180;
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            currentCountdown = countdownSeconds;
+            updateTimerDisplay();
+            timerInterval = setInterval(function () {
+                currentCountdown--;
+                updateTimerDisplay();
+                if (currentCountdown <= 0) {
+                    triggerBackupReminder();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(currentCountdown / 60);
+            const seconds = currentCountdown % 60;
+            document.getElementById('countdownDisplay').textContent =
+                String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        }
+
+        function resetTimer() {
+            currentCountdown = countdownSeconds;
+            updateTimerDisplay();
+            const dot = document.getElementById('timerDot');
+            dot.className = 'status-dot running';
+            document.getElementById('timerLabel').textContent = '⏱ 每3分钟提醒备份';
+        }
+
+        function triggerBackupReminder() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            if (items.length === 0) {
+                resetTimer();
+                startTimer();
+                return;
+            }
+
+            const dot = document.getElementById('timerDot');
+            dot.className = 'status-dot saving';
+            document.getElementById('timerLabel').textContent = '💾 准备备份...';
+
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + '_' +
+                String(now.getHours()).padStart(2, '0') + '-' +
+                String(now.getMinutes()).padStart(2, '0');
+            const fileName = '囤货清单_' + timeStr + '.json';
+
+            alert(
+                '📤 即将备份当前数据\n\n' +
+                '📄 文件名：' + fileName + '\n' +
+                '📦 数据条数：' + items.length + ' 条'
+            );
+
+            doBackupWithName(fileName);
+        }
+
+        function doBackupWithName(fileName) {
+            try {
+                const dataStr = JSON.stringify(items, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+
+                document.getElementById('timerLabel').textContent = '✅ 已备份：' + fileName;
+                resetTimer();
+                startTimer();
+
+            } catch (e) {
+                alert('备份失败：' + e.message);
+                resetTimer();
+                startTimer();
+            }
+        }
+
+        // ====== 导入文件 ======
+        function importFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!Array.isArray(data)) {
+                        alert('文件格式错误：根数据必须是数组');
+                        return;
+                    }
+                    if (data.length === 0) {
+                        alert('文件中没有数据');
+                        return;
+                    }
+                    if (!data[0].hasOwnProperty('name') && !data[0].hasOwnProperty('具体物品')) {
+                        alert('数据格式不匹配：缺少 "name" 或 "具体物品" 字段');
+                        return;
+                    }
+                    const newItems = data.map((item, i) => ({
+                        id: item.id || Date.now() + i,
+                        category: item['品类分区'] || item.category || '',
+                        name: item['具体物品'] || item.name || '',
+                        qty: item['数量'] !== undefined ? item['数量'] : (item.qty || 0),
+                        price: item['入手价'] || item.price || '',
+                        spec: item['色号'] && typeof item['色号'] === 'object' ? JSON.stringify(item['色号']) : (item['色号'] || item.spec || ''),
+                        status: item['状态'] || item.status || '待更新',
+                        reason: item['原因'] || item.reason || '',
+                        lastUsed: item['上次使用日期'] || item.lastUsed || '',
+                        note: item['备注'] || item.note || ''
+                    }));
+                    items = newItems;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+                    render();
+                    alert(`✅ 导入成功！共 ${items.length} 条数据`);
+                    document.getElementById('fileInput').value = '';
+                    document.getElementById('timerLabel').textContent = '✅ 数据已更新';
+                    resetTimer();
+                    startTimer();
+                } catch (error) {
+                    alert('❌ 文件解析失败：' + error.message);
+                    resetTimer();
+                    startTimer();
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // ====== 数据加载 ======
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && parsed.length > 0) {
+                        items = parsed;
+                        document.getElementById('dataSourceLabel').textContent = '✅ 缓存';
+                        document.getElementById('dataSourceLabel').style.color = '#16a34a';
+                        render();
+                        startTimer();
+                        return;
+                    }
+                }
+            } catch (e) { }
+
+            fetch(DATA_FILE)
+                .then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        items = data.map((item, i) => ({
+                            id: item.id || Date.now() + i,
+                            category: item['品类分区'] || '',
+                            name: item['具体物品'] || '',
+                            qty: item['数量'] || 0,
+                            price: item['入手价'] || '',
+                            spec: item['色号'] && typeof item['色号'] === 'object' ? JSON.stringify(item['色号']) : (item['色号'] || ''),
+                            status: item['状态'] || '待更新',
+                            reason: item['原因'] || '',
+                            lastUsed: item['上次使用日期'] || '',
+                            note: item['备注'] || ''
+                        }));
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+                        document.getElementById('dataSourceLabel').textContent = '✅ data.json';
+                        document.getElementById('dataSourceLabel').style.color = '#16a34a';
+                        render();
+                        startTimer();
+                    } else {
+                        document.getElementById('dataSourceLabel').textContent = '⚠️ 空';
+                        document.getElementById('dataSourceLabel').style.color = '#f59e0b';
+                        items = [];
+                        render();
+                        startTimer();
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('dataSourceLabel').textContent = '❌ 未找到';
+                    document.getElementById('dataSourceLabel').style.color = '#ef4444';
+                    items = [];
+                    render();
+                    startTimer();
+                });
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            render();
+        }
+
+        // ====== 筛选函数 ======
+        function setStatusFilter(status) {
+            document.getElementById('statusFilter').value = status;
+            render();
+        }
+
+        function setCategoryFilter(category) {
+            document.getElementById('filterCategory').value = category;
+            render();
+        }
+
+        // ====== 动态下拉选项生成 ======
+        function getCategoryOptions(selected) {
+            const cats = [...new Set(items.map(i => i.category).filter(c => c && c.trim() !== ''))];
+            let html = '';
+            cats.forEach(c => {
+                const sel = c === selected ? 'selected' : '';
+                html += `<option value="${c}" ${sel}>${c}</option>`;
+            });
+            return html;
+        }
+
+        function getReasonOptions(selected) {
+            const reasons = [...new Set(items.map(i => i.reason).filter(r => r && r.trim() !== ''))];
+            let html = '<option value="">— 请选择 —</option>';
+            reasons.forEach(r => {
+                const sel = r === selected ? 'selected' : '';
+                html += `<option value="${r}" ${sel}>${r}</option>`;
+            });
+            return html;
+        }
+
+        // ====== 弹窗 ======
+        function openAddModal() {
+            isNewMode = true;
+            editingId = null;
+            document.getElementById('modalTitle').textContent = '＋ 新增物品';
+            document.getElementById('modalSaveBtn').textContent = '💾 添加';
+            document.getElementById('modalEditHint').textContent = '';
+            document.getElementById('mCategory').innerHTML = getCategoryOptions('个护');
+            document.getElementById('mName').value = '';
+            document.getElementById('mQty').value = 1;
+            document.getElementById('mPrice').value = '';
+            document.getElementById('mSpec').value = '';
+            document.getElementById('mStatus').value = '🟢 正常';
+            document.getElementById('mReason').innerHTML = getReasonOptions('');
+            document.getElementById('mLastUsed').value = '';
+            document.getElementById('mNote').value = '';
+            document.getElementById('editModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => document.getElementById('mName').focus(), 300);
+        }
+
+        function openEditModal(id) {
+            const item = items.find(i => i.id === id);
+            if (!item) return;
+            isNewMode = false;
+            editingId = id;
+            document.getElementById('modalTitle').textContent = '✏️ 编辑：' + item.name;
+            document.getElementById('modalSaveBtn').textContent = '💾 保存修改';
+            document.getElementById('modalEditHint').textContent = '';
+            document.getElementById('mCategory').innerHTML = getCategoryOptions(item.category);
+            document.getElementById('mName').value = item.name;
+            document.getElementById('mQty').value = item.qty;
+            document.getElementById('mPrice').value = item.price || '';
+            document.getElementById('mSpec').value = item.spec || '';
+            document.getElementById('mStatus').value = item.status;
+            document.getElementById('mReason').innerHTML = getReasonOptions(item.reason || '');
+            document.getElementById('mLastUsed').value = item.lastUsed || '';
+            document.getElementById('mNote').value = item.note || '';
+            document.getElementById('editModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => document.getElementById('mName').focus(), 300);
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            document.body.style.overflow = '';
+            editingId = null;
+            isNewMode = false;
+        }
+
+        function saveModalItem() {
+            const name = document.getElementById('mName').value.trim();
+            if (!name) { alert('请填写物品名称'); return; }
+
+            const category = document.getElementById('mCategory').value;
+            const qty = parseInt(document.getElementById('mQty').value) || 0;
+            const price = document.getElementById('mPrice').value.trim();
+            const spec = document.getElementById('mSpec').value.trim();
+            const status = document.getElementById('mStatus').value;
+            const reason = document.getElementById('mReason').value;
+            const lastUsed = document.getElementById('mLastUsed').value;
+            const note = document.getElementById('mNote').value.trim();
+
+            if (isNewMode) {
+                items.push({ id: Date.now(), category, name, qty, price, spec, status, reason, lastUsed, note });
+            } else {
+                const idx = items.findIndex(i => i.id === editingId);
+                if (idx === -1) { alert('数据异常'); return; }
+                items[idx] = { ...items[idx], category, name, qty, price, spec, status, reason, lastUsed, note };
+            }
+            saveData();
+            closeModal();
+        }
+
+        // ====== 手动导出 ======
+        function exportData() {
+            if (items.length === 0) { alert('没有数据可导出'); return; }
+            const now = new Date();
+            const timeStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0') + '_' +
+                String(now.getHours()).padStart(2, '0') + '-' +
+                String(now.getMinutes()).padStart(2, '0');
+            const fileName = '囤货清单_' + timeStr + '.json';
+            const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        }
+
+        // ====== 渲染 ======
+        function render() {
+            // ====== 动态生成品类下拉 ======
+            const catSelect = document.getElementById('filterCategory');
+            const currentCatVal = catSelect.value;
+            const allCats = [...new Set(items.map(i => i.category).filter(c => c && c.trim() !== ''))];
+            let catOptions = '<option value="">全部</option>';
+            allCats.forEach(c => {
+                const selected = c === currentCatVal ? 'selected' : '';
+                catOptions += `<option value="${c}" ${selected}>${c}</option>`;
+            });
+            catSelect.innerHTML = catOptions;
+
+            // ====== 动态生成状态下拉 ======
+            const statusSelect = document.getElementById('statusFilter');
+            const currentStatusVal = statusSelect.value;
+            const allStatus = [...new Set(items.map(i => i.status).filter(s => s && s.trim() !== ''))];
+            let statusOptions = '<option value="">全部状态</option>';
+            allStatus.forEach(s => {
+                const selected = s === currentStatusVal ? 'selected' : '';
+                statusOptions += `<option value="${s}" ${selected}>${s}</option>`;
+            });
+            statusSelect.innerHTML = statusOptions;
+
+            // ====== 筛选逻辑 ======
+            const cat = document.getElementById('filterCategory').value;
+            const kw = document.getElementById('filterKeyword').value.trim().toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            let filtered = items.filter(item => {
+                if (cat && item.category !== cat) return false;
+                if (kw && !item.name.toLowerCase().includes(kw)) return false;
+                if (statusFilter && !item.status.includes(statusFilter)) return false;
+                return true;
+            });
+
+            filtered.sort((a, b) => {
+                const catA = a.category || '';
+                const catB = b.category || '';
+                const nameA = a.name || '';
+                const nameB = b.name || '';
+                return catA.localeCompare(catB) || nameA.localeCompare(nameB);
+            });
+
+            // ====== 右上角显示总件数 + 闲置率 ======
+            const total = items.length;
+            const idle = items.filter(i => i.status && i.status.includes('🔵')).length;
+            const idleRate = total > 0 ? Math.round((idle / total) * 100) : 0;
+            document.getElementById('countBadge').textContent = items.length + ' 件 ｜ 闲置率 ' + idleRate + '%';
+
+            // ====== 统计卡片 ======
+            const normal = items.filter(i => i.status && i.status.includes('🟢')).length;
+            const priority = items.filter(i => i.status && i.status.includes('🟡')).length;
+            const stock = items.filter(i => i.status && i.status.includes('🔴')).length;
+            const currentStatus = document.getElementById('statusFilter').value;
+
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="stat-item ${currentStatus === '' ? 'active' : ''}" onclick="setStatusFilter('')">📦总数<span>${total}</span></div>
+                <div class="stat-item ${currentStatus === '🟢' ? 'active' : ''}" onclick="setStatusFilter('🟢')">🟢正常<span>${normal}</span></div>
+                <div class="stat-item ${currentStatus === '🟡' ? 'active' : ''}" onclick="setStatusFilter('🟡')">🟡优先<span>${priority}</span></div>
+                <div class="stat-item ${currentStatus === '🔴' ? 'active' : ''}" onclick="setStatusFilter('🔴')">🔴存货<span>${stock}</span></div>
+                <div class="stat-item ${currentStatus === '🔵' ? 'active' : ''}" onclick="setStatusFilter('🔵')">🔵闲置<span>${idle}</span></div>
+            `;
+
+            // ====== 品类标签 ======
+            const tagList = [...new Set(items.map(i => i.category).filter(c => c && c.trim() !== ''))];
+            const currentCat = document.getElementById('filterCategory').value;
+
+            const oldTag = document.querySelector('.category-tags');
+            if (oldTag) oldTag.remove();
+
+            if (tagList.length > 0) {
+                let tagHtml = `<div class="category-tags">`;
+                tagHtml += `<span class="cat-tag ${currentCat === '' ? 'active' : ''}" onclick="setCategoryFilter('')">📋 全部</span>`;
+                tagList.forEach(c => {
+                    const count = items.filter(i => i.category === c).length;
+                    const activeClass = currentCat === c ? 'active' : '';
+                    const safeCat = c.replace(/'/g, "\\'");
+                    tagHtml += `<span class="cat-tag ${activeClass}" onclick="setCategoryFilter('${safeCat}')">${c} <span class="count">${count}</span></span>`;
+                });
+                tagHtml += `</div>`;
+                document.getElementById('statsContainer').insertAdjacentHTML('afterend', tagHtml);
+            }
+
+            // ====== 渲染列表 ======
+            const container = document.getElementById('itemList');
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty">📭 没有匹配的物品</div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(item => {
+                const color = item.status && item.status.includes('🟡') ? '#eab308' :
+                    item.status && item.status.includes('🔴') ? '#ef4444' :
+                        item.status && item.status.includes('🔵') ? '#3b82f6' :
+                            item.status && item.status.includes('🟢') ? '#22c55e' : '#94a3b8';
+
+                html += `
+                    <div class="item-card" style="border-left-color:${color}">
+                        <div class="top">
+                            <div class="info-row">
+                                <span class="name">${item.name || '未命名'}</span>
+                                <span class="category-tag">${item.category || '📂 未分类'}</span>
+                                <span class="meta-item">×${item.qty || 0}</span>
+                                <span class="meta-item">💰 ${item.price || '<span style="color:#ef4444;">未填</span>'}</span>
+                                <span class="meta-item">🏷️ ${item.spec || '<span style="color:#ef4444;">未填</span>'}</span>
+                                <span class="meta-item tag">${item.status || '未知'}</span>
+                                ${item.lastUsed ? `<span class="meta-item">📅 ${item.lastUsed}</span>` : ''}
+                                <span class="meta-item">📌 ${item.reason || '<span style="color:#ef4444;">未填</span>'}</span>
+                                <span class="meta-item">📝 ${item.note || '<span style="color:#ef4444;">未填</span>'}</span>
+                            </div>
+                            <div class="actions">
+                                <button class="btn btn-outline btn-sm" onclick="openEditModal(${item.id})">✏️</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function deleteItem(id) {
+            if (!confirm('确定要删除吗？')) return;
+            items = items.filter(i => i.id !== id);
+            saveData();
+        }
+
+        function clearFilters() {
+            document.getElementById('filterCategory').value = '';
+            document.getElementById('filterKeyword').value = '';
+            document.getElementById('statusFilter').value = '';
+            render();
+        }
+
+        // ====== 事件绑定 ======
+        document.getElementById('filterCategory').addEventListener('change', render);
+        document.getElementById('filterKeyword').addEventListener('input', render);
+        document.getElementById('statusFilter').addEventListener('change', render);
+        document.getElementById('editModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        loadData();
+    </script>
+</body>
+
+</html>
