@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<script src="data.js"></script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>花销统计</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fb;
+            padding: 16px 12px 40px 12px;
+            color: #1e293b;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stats-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .stats-header .back-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 6px 16px;
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .stats-header .back-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .stats-overview {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .stats-overview .total {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .stats-overview .total .currency {
+            font-size: 16px;
+            font-weight: 400;
+            color: #94a3b8;
+        }
+
+        .stats-overview .count {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .stats-overview .count span {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .field-switches {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            align-items: center;
+        }
+
+        .field-switches .switch-label {
+            font-size: 12px;
+            color: #64748b;
+            margin-right: 4px;
+        }
+
+        .field-switch {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+            padding: 2px 8px 2px 4px;
+            border-radius: 6px;
+            transition: 0.15s;
+        }
+
+        .field-switch:hover {
+            background: #f1f5f9;
+        }
+
+        .field-switch .toggle {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            background: #d1d5db;
+            border-radius: 9px;
+            transition: 0.2s;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .field-switch .toggle.active {
+            background: #3b82f6;
+        }
+
+        .field-switch .toggle .knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .field-switch .toggle.active .knob {
+            left: 16px;
+        }
+
+        /* ====== 维度容器：2列布局 ====== */
+        #dimensionContainer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .dimension-block {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            display: none;
+        }
+
+        .dimension-block.active {
+            display: block;
+        }
+
+        .dimension-block .dimension-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .dimension-block .dimension-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .dimension-block .chart-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .dimension-block .chart-container canvas {
+            width: 100%;
+            max-width: 130px;
+            height: auto;
+            aspect-ratio: 1/1;
+        }
+
+        .dimension-block .data-list {
+            width: 100%;
+        }
+
+        .dimension-block .data-list .list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 12px;
+        }
+
+        .dimension-block .data-list .list-item .label {
+            color: #475569;
+        }
+
+        .dimension-block .data-list .list-item .amount {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .dimension-block .data-list .list-item .percent {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-left: 6px;
+        }
+
+        .empty-tip {
+            text-align: center;
+            color: #94a3b8;
+            padding: 30px 0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            #dimensionContainer {
+                grid-template-columns: 1fr;
+            }
+
+            .dimension-block .dimension-content {
+                grid-template-columns: 1fr;
+            }
+
+            .dimension-block .chart-container canvas {
+                max-width: 160px;
+            }
+
+            .stats-overview {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="stats-header">
+        <h1>📊 花销统计</h1>
+        <button class="back-btn" onclick="window.location.href='index.html'">← 返回清单</button>
+    </div>
+
+    <div class="stats-overview" id="overview">
+        <div class="total"><span class="currency">¥</span> <span id="totalAmount">0.00</span></div>
+        <div class="count">统计范围：<span id="itemCount">0</span> 件物品</div>
+    </div>
+
+    <div class="field-switches" id="switchContainer">
+        <span class="switch-label">统计维度：</span>
+    </div>
+
+    <div id="dimensionContainer"></div>
+
+    <script src="data.js"></script>
+    <script>
+        const COLORS = [
+            '#3b82f6', '#ef4444', '#22c55e', '#eab308', '#8b5cf6',
+            '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
+            '#06b6d4', '#d946ef', '#10b981', '#f59e0b', '#3b82f6'
+        ];
+
+        function getColor(index) {
+            return COLORS[index % COLORS.length];
+        }
+
+        function drawPieChart(canvas, data, total) {
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            const size = Math.min(rect.width || 200, 260);
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            ctx.scale(dpr, dpr);
+
+            const cx = size / 2;
+            const cy = size / 2;
+            const radius = size / 2 - 16;
+
+            ctx.clearRect(0, 0, size, size);
+
+            if (data.length === 0 || total === 0) {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '14px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('无数据', cx, cy);
+                return;
+            }
+
+            let startAngle = -Math.PI / 2;
+            data.forEach((item, i) => {
+                const sliceAngle = (item.value / total) * 2 * Math.PI;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, radius, startAngle, startAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = getColor(i);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                startAngle += sliceAngle;
+            });
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius * 0.45, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+
+            ctx.fillStyle = '#1e293b';
+            ctx.font = 'bold 14px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('¥' + total.toFixed(0), cx, cy - 4);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px -apple-system, sans-serif';
+            ctx.fillText('总计', cx, cy + 16);
+        }
+
+        function calcStats(items, fieldKey) {
+            const map = {};
+            let total = 0;
+            items.forEach(item => {
+                const price = parseFloat(item.price);
+                if (!isNaN(price) && price >= 0) {
+                    const key = item[fieldKey] || '未分类';
+                    if (!map[key]) map[key] = 0;
+                    map[key] += price;
+                    total += price;
+                }
+            });
+            const sorted = Object.entries(map)
+                .sort((a, b) => b[1] - a[1])
+                .map(([label, value]) => ({ label, value }));
+            return { data: sorted, total };
+        }
+
+        function renderStats() {
+            if (typeof items === 'undefined' || items.length === 0) {
+                document.getElementById('overview').innerHTML = '<div class="empty-tip">📭 暂无数据，请先添加物品</div>';
+                return;
+            }
+
+            let totalSpent = 0;
+            let priceCount = 0;
+            items.forEach(item => {
+                const price = parseFloat(item.price);
+                if (!isNaN(price) && price >= 0) {
+                    totalSpent += price;
+                    priceCount++;
+                }
+            });
+            document.getElementById('totalAmount').textContent = totalSpent.toFixed(2);
+            document.getElementById('itemCount').textContent = priceCount;
+
+            const fields = getFields();
+            const visibleFields = fields.filter(f => f.visible && f.key !== 'classification' && f.type !== 'text' && f.type !== 'date' && f.type !== 'textarea');
+
+            const defaultOpen = ['category', 'status'];
+            const switchStates = {};
+            visibleFields.forEach(f => {
+                switchStates[f.key] = defaultOpen.includes(f.key);
+            });
+
+            const switchContainer = document.getElementById('switchContainer');
+            let switchHtml = '<span class="switch-label">统计维度：</span>';
+            visibleFields.forEach(f => {
+                const isOn = switchStates[f.key];
+                switchHtml += `
+                    <label class="field-switch" data-key="${f.key}">
+                        <div class="toggle ${isOn ? 'active' : ''}" onclick="toggleSwitch('${f.key}')">
+                            <div class="knob"></div>
+                        </div>
+                        ${f.label}
+                    </label>
+                `;
+            });
+            switchContainer.innerHTML = switchHtml;
+
+            renderDimensions(visibleFields, switchStates);
+        }
+
+        function toggleSwitch(key) {
+            const toggle = document.querySelector(`.field-switch[data-key="${key}"] .toggle`);
+            if (!toggle) return;
+            toggle.classList.toggle('active');
+            const isOn = toggle.classList.contains('active');
+
+            const block = document.getElementById('dimension-' + key);
+            if (block) {
+                block.classList.toggle('active', isOn);
+                if (isOn) {
+                    const canvas = block.querySelector('canvas');
+                    if (canvas) {
+                        const stats = calcStats(items, key);
+                        drawPieChart(canvas, stats.data, stats.total);
+                        const listContainer = block.querySelector('.data-list');
+                        if (listContainer) {
+                            listContainer.innerHTML = buildDataList(stats.data, stats.total);
+                        }
+                    }
+                }
+            }
+        }
+
+        function buildDataList(data, total) {
+            if (data.length === 0) {
+                return '<div style="color:#94a3b8; font-size:13px; padding:8px 0;">暂无数据</div>';
+            }
+            let html = '';
+            data.forEach(item => {
+                const percent = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+                html += `
+                    <div class="list-item">
+                        <span class="label">${item.label}</span>
+                        <span>
+                            <span class="amount">¥${item.value.toFixed(2)}</span>
+                            <span class="percent">${percent}%</span>
+                        </span>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        function renderDimensions(fields, switchStates) {
+            const container = document.getElementById('dimensionContainer');
+            let html = '';
+
+            fields.forEach(f => {
+                const isOn = switchStates[f.key] || false;
+                const stats = calcStats(items, f.key);
+                const activeClass = isOn ? 'active' : '';
+
+                html += `
+                    <div class="dimension-block ${activeClass}" id="dimension-${f.key}">
+                        <div class="dimension-title">📊 ${f.label}</div>
+                        <div class="dimension-content">
+                            <div class="chart-container">
+                                <canvas id="chart-${f.key}" width="260" height="260"></canvas>
+                            </div>
+                            <div class="data-list" id="list-${f.key}">
+                                ${buildDataList(stats.data, stats.total)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            fields.forEach(f => {
+                const canvas = document.getElementById('chart-' + f.key);
+                if (canvas) {
+                    const stats = calcStats(items, f.key);
+                    drawPieChart(canvas, stats.data, stats.total);
+                }
+            });
+        }
+
+        function waitForItems() {
+            if (typeof items !== 'undefined' && items.length > 0) {
+                renderStats();
+            } else if (typeof items !== 'undefined' && items.length === 0) {
+                setTimeout(waitForItems, 300);
+            } else {
+                setTimeout(waitForItems, 300);
+            }
+        }
+
+        if (typeof loadData === 'function') {
+            loadData();
+        }
+
+        waitForItems();
+
+        let resizeTimer = null;
+        window.addEventListener('resize', function () {
+            if (resizeTimer) clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                const visibleBlocks = document.querySelectorAll('.dimension-block.active');
+                visibleBlocks.forEach(block => {
+                    const canvas = block.querySelector('canvas');
+                    if (canvas) {
+                        const key = canvas.id.replace('chart-', '');
+                        const stats = calcStats(items, key);
+                        drawPieChart(canvas, stats.data, stats.total);
+                    }
+                });
+            }, 300);
+        });
+    </script>
+</body>
+
+</html>

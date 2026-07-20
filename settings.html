@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>设置管理</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fb;
+            padding: 16px;
+            color: #1e293b;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .settings-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .settings-header .back-btn {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 6px 16px;
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+        }
+
+        .settings-header .back-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .settings-layout {
+            display: flex;
+            gap: 16px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .settings-tabs {
+            flex-shrink: 0;
+            width: auto;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 8px 0;
+        }
+
+        .settings-tabs .tab-item {
+            padding: 10px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #64748b;
+            border-left: 3px solid transparent;
+            transition: 0.15s;
+        }
+
+        .settings-tabs .tab-item:hover {
+            background: #f1f5f9;
+        }
+
+        .settings-tabs .tab-item.active {
+            background: white;
+            color: #1e293b;
+            border-left-color: #3b82f6;
+            font-weight: 500;
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 16px 20px;
+            min-width: 0;
+        }
+
+        .settings-content .tab-panel {
+            display: none;
+        }
+
+        .settings-content .tab-panel.active {
+            display: block;
+        }
+
+        .settings-content .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .settings-content .panel-sub {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .item-list .list-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .item-list .list-item:active {
+            cursor: grabbing;
+        }
+
+        .item-list .list-item.dragging {
+            opacity: 0.5;
+        }
+
+        .item-list .list-item .drag-handle {
+            color: #94a3b8;
+            font-size: 16px;
+            margin-right: 4px;
+            cursor: grab;
+        }
+
+        .item-list .list-item .del-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .item-list .list-item .del-btn:hover {
+            color: #dc2626;
+        }
+
+        .item-list .empty-tip {
+            color: #94a3b8;
+            font-size: 13px;
+            padding: 16px 0;
+            text-align: center;
+        }
+
+        .add-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .add-row input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fafbfc;
+        }
+
+        .add-row input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .add-row .add-btn {
+            padding: 6px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .add-row .add-btn:hover {
+            background: #2563eb;
+        }
+
+        .settings-footer {
+            margin-top: 12px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .field-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .field-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .field-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .field-item .drag-handle {
+            cursor: grab;
+            color: #94a3b8;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .field-item .field-label {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .field-item .field-label .field-key {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-left: 6px;
+        }
+
+        .field-item .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: #d1d5db;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .field-item .toggle-switch.active {
+            background: #3b82f6;
+        }
+
+        .field-item .toggle-switch .toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .field-item .toggle-switch.active .toggle-knob {
+            left: 18px;
+        }
+
+        .field-item .field-btn {
+            background: none;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            color: #475569;
+            flex-shrink: 0;
+        }
+
+        .field-item .field-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .field-item .field-btn.danger {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .field-item .field-btn.danger:hover {
+            background: #fef2f2;
+        }
+
+        .field-item .builtin-badge {
+            font-size: 11px;
+            color: #94a3b8;
+            flex-shrink: 0;
+        }
+
+        .other-setting {
+            max-width: 400px;
+        }
+
+        .other-setting .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .other-setting .setting-row label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            min-width: 120px;
+        }
+
+        .other-setting .setting-row input[type="number"] {
+            width: 80px;
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .other-setting .setting-row .hint {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            background: #d1d5db;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch.active {
+            background: #3b82f6;
+        }
+
+        .toggle-switch .toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .toggle-switch.active .toggle-knob {
+            left: 18px;
+        }
+
+        .save-hint {
+            font-size: 12px;
+            color: #22c55e;
+            margin-left: 8px;
+            display: none;
+        }
+
+        .save-hint.show {
+            display: inline;
+        }
+
+        @media (max-width: 600px) {
+            .settings-layout {
+                flex-direction: column;
+            }
+
+            .settings-tabs {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+                padding: 4px 8px;
+                gap: 2px;
+            }
+
+            .settings-tabs .tab-item {
+                padding: 8px 12px;
+                font-size: 13px;
+                border-left: none;
+                border-bottom: 2px solid transparent;
+            }
+
+            .settings-tabs .tab-item.active {
+                border-left: none;
+                border-bottom-color: #3b82f6;
+            }
+
+            .settings-content {
+                padding: 12px 16px;
+            }
+
+            .add-row {
+                flex-wrap: wrap;
+            }
+
+            .add-row input {
+                min-width: 120px;
+            }
+
+            .other-setting .setting-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="settings-header">
+        <h1>⚙️ 设置管理</h1>
+        <button class="back-btn" onclick="window.location.href='index.html'">← 返回清单</button>
+    </div>
+
+    <div class="settings-layout">
+        <div class="settings-tabs" id="settingsTabs">
+            <div class="tab-item active" data-tab="categories">📂 品类</div>
+            <div class="tab-item" data-tab="statuses">📌 状态</div>
+            <div class="tab-item" data-tab="reasons">💡 原因</div>
+            <div class="tab-item" data-tab="notePresets">📝 备注预设</div>
+            <!-- 自定义下拉字段的选项管理Tab会动态插入到这里 -->
+            <div class="tab-item" data-tab="fields">📋 字段管理</div>
+            <div class="tab-item" data-tab="other">⚙️ 其它</div>
+        </div>
+
+        <div class="settings-content" id="settingsContent">
+            <!-- 品类 -->
+            <div class="tab-panel active" id="panel-categories">
+                <div class="panel-title">📂 品类管理</div>
+                <div class="panel-sub">管理所有可用的品类选项，编辑弹窗中会自动同步</div>
+                <div class="item-list" id="categoryList"></div>
+                <div class="add-row">
+                    <input type="text" id="categoryInput" placeholder="输入新品类..." />
+                    <button class="add-btn" onclick="addItem('categories', 'categoryInput', 'categoryList')">添加</button>
+                </div>
+            </div>
+
+            <!-- 状态 -->
+            <div class="tab-panel" id="panel-statuses">
+                <div class="panel-title">📌 状态管理</div>
+                <div class="panel-sub">管理所有可用的状态选项，编辑弹窗中会自动同步</div>
+                <div class="item-list" id="statusList"></div>
+                <div class="add-row">
+                    <input type="text" id="statusInput" placeholder="输入新状态..." />
+                    <button class="add-btn" onclick="addItem('statuses', 'statusInput', 'statusList')">添加</button>
+                </div>
+            </div>
+
+            <!-- 原因 -->
+            <div class="tab-panel" id="panel-reasons">
+                <div class="panel-title">💡 原因管理</div>
+                <div class="panel-sub">管理所有可用的原因选项，编辑弹窗中会自动同步</div>
+                <div class="item-list" id="reasonList"></div>
+                <div class="add-row">
+                    <input type="text" id="reasonInput" placeholder="输入新原因..." />
+                    <button class="add-btn" onclick="addItem('reasons', 'reasonInput', 'reasonList')">添加</button>
+                </div>
+            </div>
+
+            <!-- 备注预设 -->
+            <div class="tab-panel" id="panel-notePresets">
+                <div class="panel-title">📝 备注预设管理</div>
+                <div class="panel-sub">管理备注的预设选项，方便快速填入</div>
+                <div class="item-list" id="notePresetList"></div>
+                <div class="add-row">
+                    <input type="text" id="notePresetInput" placeholder="输入备注预设..." />
+                    <button class="add-btn"
+                        onclick="addItem('notePresets', 'notePresetInput', 'notePresetList')">添加</button>
+                </div>
+            </div>
+
+            <!-- 字段管理 -->
+            <div class="tab-panel" id="panel-fields">
+                <div class="panel-title">📋 字段管理</div>
+                <div class="panel-sub">拖拽调整顺序，开关控制显示/隐藏，内置字段不可删除</div>
+                <div class="field-list" id="fieldList"></div>
+                <div class="add-row">
+                    <input type="text" id="fieldNameInput" placeholder="输入新字段名称..." />
+                    <select id="fieldTypeSelect"
+                        style="flex:1; padding:6px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:14px; background:#fafbfc;">
+                        <option value="text">📝 文本</option>
+                        <option value="number">🔢 数字</option>
+                        <option value="date">📅 日期</option>
+                        <option value="select">📋 下拉选择</option>
+                        <option value="textarea">📄 多行文本</option>
+                    </select>
+                    <button class="add-btn" onclick="addCustomField()">添加字段</button>
+                </div>
+            </div>
+
+            <!-- 其它 -->
+            <div class="tab-panel" id="panel-other">
+                <div class="panel-title">⚙️ 其它设置</div>
+                <div class="panel-sub">定时器及其他杂项设置</div>
+                <div class="other-setting">
+                    <div class="setting-row">
+                        <label>⏱️ 备份提醒间隔</label>
+                        <input type="number" id="timerIntervalInput" min="1" max="60" value="3" />
+                        <span class="hint">分钟</span>
+                    </div>
+                    <div class="setting-row">
+                        <label>启用自动备份提醒</label>
+                        <div class="toggle-switch" id="timerEnableToggle" onclick="toggleTimerEnable()">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; margin-top:4px;">
+                        <button class="btn btn-primary" onclick="saveTimerSettings()">💾 保存设置</button>
+                        <span class="save-hint" id="timerSaveHint">✅ 已保存</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自定义下拉字段的选项管理面板（动态生成） -->
+            <div id="customSelectPanels"></div>
+        </div>
+    </div>
+
+    <div class="settings-footer">📌 修改后会自动保存，并同步到编辑弹窗</div>
+
+    <script src="data.js"></script>
+    <script>
+        // ====== 品类/状态/原因/备注预设 管理 ======
+        function getList(key) {
+            return settings[key] || [];
+        }
+
+        let dragData = null;
+
+        function renderList(key, listId) {
+            const container = document.getElementById(listId);
+            const list = getList(key);
+            if (list.length === 0) {
+                container.innerHTML = `<div class="empty-tip">暂无选项，请添加</div>`;
+                return;
+            }
+            let html = '';
+            list.forEach((item, index) => {
+                let displayText = item;
+                if (key === 'categories' || key === 'reasons' || key === 'notePresets') {
+                    const icon = getCategoryIcon(item);
+                    displayText = icon ? `${icon} ${item}` : item;
+                }
+                html += `
+                    <div class="list-item" draggable="true" data-key="${key}" data-index="${index}" data-listid="${listId}">
+                        <span class="drag-handle">⠿</span>
+                        <span>${displayText}</span>
+                        <button class="del-btn" onclick="deleteItem('${key}', ${index}, '${listId}')">✕</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            container.querySelectorAll('.list-item[draggable="true"]').forEach(el => {
+                el.removeEventListener('dragstart', handleListDragStart);
+                el.removeEventListener('dragend', handleListDragEnd);
+                el.removeEventListener('dragover', handleListDragOver);
+                el.removeEventListener('drop', handleListDrop);
+                el.addEventListener('dragstart', handleListDragStart);
+                el.addEventListener('dragend', handleListDragEnd);
+                el.addEventListener('dragover', handleListDragOver);
+                el.addEventListener('drop', handleListDrop);
+            });
+        }
+
+        function handleListDragStart(e) {
+            dragData = {
+                key: this.dataset.key,
+                index: parseInt(this.dataset.index),
+                listId: this.dataset.listid
+            };
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleListDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleListDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleListDrop(e) {
+            e.preventDefault();
+            if (!dragData) return;
+            const targetKey = this.dataset.key;
+            const targetIndex = parseInt(this.dataset.index);
+            const listId = this.dataset.listid;
+
+            if (dragData.key !== targetKey || dragData.index === targetIndex) return;
+            if (dragData.listId !== listId) return;
+
+            const list = getList(dragData.key);
+            const [removed] = list.splice(dragData.index, 1);
+            list.splice(targetIndex, 0, removed);
+            settings[dragData.key] = list;
+            saveSettings();
+            renderList(dragData.key, listId);
+            dragData = null;
+        }
+
+        function addItem(key, inputId, listId) {
+            const input = document.getElementById(inputId);
+            const value = input.value.trim();
+            if (!value) { alert('请输入内容'); return; }
+            const list = getList(key);
+            if (list.includes(value)) { alert('该项已存在'); return; }
+            list.push(value);
+            settings[key] = list;
+            saveSettings();
+            input.value = '';
+            renderList(key, listId);
+        }
+
+        function deleteItem(key, index, listId) {
+            const list = getList(key);
+            if (!confirm(`确定要删除「${list[index]}」吗？`)) return;
+            list.splice(index, 1);
+            settings[key] = list;
+            saveSettings();
+            renderList(key, listId);
+        }
+
+        // ====== 字段管理 ======
+        let fields = [];
+
+        function loadFields() {
+            const raw = localStorage.getItem('myStockFields');
+            if (raw) {
+                try {
+                    fields = JSON.parse(raw);
+                } catch (e) {
+                    fields = DEFAULT_FIELDS;
+                }
+            } else {
+                fields = DEFAULT_FIELDS;
+                localStorage.setItem('myStockFields', JSON.stringify(fields));
+            }
+        }
+
+        function saveFieldsToStorage() {
+            localStorage.setItem('myStockFields', JSON.stringify(fields));
+        }
+
+        function renderFieldList() {
+            const container = document.getElementById('fieldList');
+            if (!container) return;
+            if (fields.length === 0) {
+                container.innerHTML = '<div class="empty-tip">暂无字段</div>';
+                return;
+            }
+            let html = '';
+            fields.forEach((f, index) => {
+                if (f.key === 'classification') return;
+                const isBuiltin = f.builtin === true;
+                const visibleClass = f.visible ? 'active' : '';
+                const typeMap = {
+                    'text': '📝 文本',
+                    'number': '🔢 数字',
+                    'date': '📅 日期',
+                    'select': '📋 下拉',
+                    'textarea': '📄 多行'
+                };
+                const typeLabel = typeMap[f.type] || '📝 文本';
+                html += `
+                    <div class="field-item" draggable="true" data-index="${index}">
+                        <span class="drag-handle">⠿</span>
+                        <span class="field-label">${f.label}</span>
+                        <span style="font-size:11px; color:#94a3b8; margin:0 4px;">${typeLabel}</span>
+                        <div class="toggle-switch ${visibleClass}" onclick="toggleFieldVisibility(${index})">
+                            <div class="toggle-knob"></div>
+                        </div>
+                        ${isBuiltin ? '<span class="builtin-badge">🔒 内置</span>' : `<button class="field-btn" onclick="renameField(${index})">改名</button>`}
+                        ${isBuiltin ? '<span class="builtin-badge">🔒 内置</span>' : `<button class="field-btn danger" onclick="deleteCustomField(${index})">删除</button>`}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            document.querySelectorAll('.field-item').forEach(el => {
+                el.removeEventListener('dragstart', handleDragStart);
+                el.removeEventListener('dragend', handleDragEnd);
+                el.removeEventListener('dragover', handleDragOver);
+                el.removeEventListener('drop', handleDrop);
+                el.addEventListener('dragstart', handleDragStart);
+                el.addEventListener('dragend', handleDragEnd);
+                el.addEventListener('dragover', handleDragOver);
+                el.addEventListener('drop', handleDrop);
+            });
+        }
+
+        let dragStartIndex = null;
+
+        function handleDragStart(e) {
+            dragStartIndex = parseInt(this.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const targetIndex = parseInt(this.dataset.index);
+            if (dragStartIndex !== null && dragStartIndex !== targetIndex) {
+                const [removed] = fields.splice(dragStartIndex, 1);
+                fields.splice(targetIndex, 0, removed);
+                saveFieldsToStorage();
+                renderFieldList();
+            }
+        }
+
+        function toggleFieldVisibility(index) {
+            fields[index].visible = !fields[index].visible;
+            saveFieldsToStorage();
+            renderFieldList();
+        }
+
+        function renameField(index) {
+            const current = fields[index].label;
+            const newName = prompt('请输入新的字段名称：', current);
+            if (newName && newName.trim() !== '' && newName.trim() !== current) {
+                fields[index].label = newName.trim();
+                saveFieldsToStorage();
+                renderFieldList();
+                // 重新渲染自定义下拉Tab，更新Tab名称
+                renderCustomSelectTabs();
+                // 如果当前选中的是改名的Tab，更新高亮
+
+            }
+        }
+
+        function deleteCustomField(index) {
+            const field = fields[index];
+            if (field.builtin) {
+                alert('内置字段不可删除');
+                return;
+            }
+            if (!confirm(`确定要删除字段「${field.label}」吗？已有数据将保留但隐藏。`)) return;
+            // 如果是下拉类型，删除对应的选项数据
+            if (field.type === 'select') {
+                const optKey = field.key + '_options';
+                if (settings[optKey]) {
+                    delete settings[optKey];
+                    saveSettings();
+                }
+            }
+            fields.splice(index, 1);
+            saveFieldsToStorage();
+            renderFieldList();
+            renderCustomSelectTabs();
+        }
+
+        function addCustomField() {
+            const input = document.getElementById('fieldNameInput');
+            const typeSelect = document.getElementById('fieldTypeSelect');
+            const name = input.value.trim();
+            if (!name) { alert('请输入字段名称'); return; }
+            const key = 'custom_' + Date.now();
+            if (fields.find(f => f.label === name)) {
+                alert('该字段名称已存在');
+                return;
+            }
+            const field = {
+                key: key,
+                label: name,
+                visible: true,
+                builtin: false,
+                type: typeSelect.value
+            };
+            fields.push(field);
+            saveFieldsToStorage();
+
+            // 如果是下拉类型，创建对应的选项列表
+            if (typeSelect.value === 'select') {
+                const optKey = key + '_options';
+                if (!settings[optKey]) {
+                    settings[optKey] = [];
+                    saveSettings();
+                }
+                renderCustomSelectTabs();
+            }
+
+            input.value = '';
+            renderFieldList();
+        }
+
+        // ====== 自定义下拉字段的选项管理 ======
+        function renderCustomSelectTabs() {
+            // 找出所有下拉类型的自定义字段
+            const selectFields = fields.filter(f => f.type === 'select' && !f.builtin);
+
+            // 移除旧的动态Tab（保留固定Tab）
+            const tabsContainer = document.getElementById('settingsTabs');
+            const fixedTabs = ['categories', 'statuses', 'reasons', 'notePresets', 'fields', 'other'];
+            const existingTabs = tabsContainer.querySelectorAll('.tab-item');
+            existingTabs.forEach(el => {
+                const tab = el.dataset.tab;
+                if (!fixedTabs.includes(tab)) {
+                    el.remove();
+                }
+            });
+
+            // 在"字段管理"前面插入新的Tab
+            const fieldsTab = tabsContainer.querySelector('[data-tab="fields"]');
+            // 为自定义下拉字段分配图标
+            const iconPool = ['🎯', '⭐', '🌟', '💎', '🎨', '🔧', '📌', '✂️', '🖍️', '📎', '🔗', '🧩', '🎮', '📚', '🎵', '🏷️'];
+            let iconIndex = 0;
+            // 收集所有自定义下拉字段的选项key
+            selectFields.forEach(f => {
+                const optKey = f.key + '_options';
+                // 确保settings中有对应的选项列表
+                if (!settings[optKey]) {
+                    settings[optKey] = [];
+                    saveSettings();
+                }
+                const tab = document.createElement('div');
+                tab.className = 'tab-item';
+                tab.dataset.tab = optKey;
+                // 分配图标
+                const icon = iconPool[iconIndex % iconPool.length];
+                iconIndex++;
+                tab.textContent = icon + ' ' + f.label;
+                tab.addEventListener('click', function () {
+                    switchTab(optKey);
+                });
+                tabsContainer.insertBefore(tab, fieldsTab);
+            });
+
+            // 生成对应的面板
+            const contentContainer = document.getElementById('settingsContent');
+            // 移除旧的动态面板（保留固定面板）
+            const fixedPanels = ['panel-categories', 'panel-statuses', 'panel-reasons', 'panel-notePresets', 'panel-fields', 'panel-other'];
+            const existingPanels = contentContainer.querySelectorAll('.tab-panel');
+            existingPanels.forEach(el => {
+                if (!fixedPanels.includes(el.id)) {
+                    el.remove();
+                }
+            });
+
+            // 为每个下拉字段生成面板
+            selectFields.forEach(f => {
+                const optKey = f.key + '_options';
+                const panelId = 'panel-' + optKey;
+                const existingPanel = document.getElementById(panelId);
+                if (!existingPanel) {
+                    const panel = document.createElement('div');
+                    panel.className = 'tab-panel';
+                    panel.id = panelId;
+                    panel.innerHTML = `
+                        <div class="panel-title">📋 ${f.label} 选项管理</div>
+                        <div class="panel-sub">管理「${f.label}」下拉选项，拖拽调整顺序</div>
+                        <div class="item-list" id="list-${optKey}"></div>
+                        <div class="add-row">
+                            <input type="text" id="input-${optKey}" placeholder="输入新选项..." />
+                            <button class="add-btn" onclick="addSelectOption('${optKey}')">添加</button>
+                        </div>
+                    `;
+                    contentContainer.appendChild(panel);
+                }
+                // 渲染选项列表
+                renderSelectOptionList(optKey);
+            });
+
+            // 如果当前选中的是自定义下拉Tab，刷新内容
+            const activeTab = document.querySelector('.tab-item.active');
+            if (activeTab && !fixedTabs.includes(activeTab.dataset.tab)) {
+                const panel = document.getElementById('panel-' + activeTab.dataset.tab);
+                if (panel) {
+                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                    panel.classList.add('active');
+                }
+            }
+        }
+
+        function renderSelectOptionList(optKey) {
+            const listId = 'list-' + optKey;
+            const container = document.getElementById(listId);
+            if (!container) return;
+            const list = settings[optKey] || [];
+
+            if (list.length === 0) {
+                container.innerHTML = '<div class="empty-tip">暂无选项，请添加</div>';
+                return;
+            }
+
+            let html = '';
+            list.forEach((item, index) => {
+                html += `
+                    <div class="list-item" draggable="true" data-key="${optKey}" data-index="${index}" data-listid="${listId}">
+                        <span class="drag-handle">⠿</span>
+                        <span>${getCategoryIcon(item)} ${item}</span>
+                        <button class="del-btn" onclick="deleteSelectOption('${optKey}', ${index}, '${listId}')">✕</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            container.querySelectorAll('.list-item[draggable="true"]').forEach(el => {
+                el.removeEventListener('dragstart', handleSelectDragStart);
+                el.removeEventListener('dragend', handleSelectDragEnd);
+                el.removeEventListener('dragover', handleSelectDragOver);
+                el.removeEventListener('drop', handleSelectDrop);
+                el.addEventListener('dragstart', handleSelectDragStart);
+                el.addEventListener('dragend', handleSelectDragEnd);
+                el.addEventListener('dragover', handleSelectDragOver);
+                el.addEventListener('drop', handleSelectDrop);
+            });
+        }
+
+        let selectDragData = null;
+
+        function handleSelectDragStart(e) {
+            selectDragData = {
+                key: this.dataset.key,
+                index: parseInt(this.dataset.index),
+                listId: this.dataset.listid
+            };
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleSelectDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleSelectDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleSelectDrop(e) {
+            e.preventDefault();
+            if (!selectDragData) return;
+            const targetKey = this.dataset.key;
+            const targetIndex = parseInt(this.dataset.index);
+            const listId = this.dataset.listid;
+
+            if (selectDragData.key !== targetKey || selectDragData.index === targetIndex) return;
+            if (selectDragData.listId !== listId) return;
+
+            const list = settings[selectDragData.key] || [];
+            const [removed] = list.splice(selectDragData.index, 1);
+            list.splice(targetIndex, 0, removed);
+            settings[selectDragData.key] = list;
+            saveSettings();
+            renderSelectOptionList(selectDragData.key);
+            selectDragData = null;
+        }
+
+        function addSelectOption(optKey) {
+            const input = document.getElementById('input-' + optKey);
+            const value = input.value.trim();
+            if (!value) { alert('请输入选项内容'); return; }
+            if (!settings[optKey]) {
+                settings[optKey] = [];
+            }
+            if (settings[optKey].includes(value)) {
+                alert('该选项已存在');
+                return;
+            }
+            settings[optKey].push(value);
+            saveSettings();
+            input.value = '';
+            renderSelectOptionList(optKey);
+        }
+
+        function deleteSelectOption(optKey, index, listId) {
+            const list = settings[optKey] || [];
+            if (!confirm(`确定要删除「${list[index]}」吗？`)) return;
+            list.splice(index, 1);
+            settings[optKey] = list;
+            saveSettings();
+            renderSelectOptionList(optKey);
+        }
+
+        // ====== 标签切换（增强版） ======
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.tab === tabName);
+            });
+            document.querySelectorAll('.tab-panel').forEach(el => {
+                el.classList.toggle('active', el.id === 'panel-' + tabName);
+            });
+
+            // 固定Tab的映射
+            const fixedMap = {
+                'categories': 'categoryList',
+                'statuses': 'statusList',
+                'reasons': 'reasonList',
+                'notePresets': 'notePresetList'
+            };
+
+            if (tabName === 'fields') {
+                loadFields();
+                renderFieldList();
+            } else if (tabName === 'other') {
+                loadTimerSettings();
+            } else if (fixedMap[tabName]) {
+                renderList(tabName, fixedMap[tabName]);
+            } else {
+                // 自定义下拉字段的Tab
+                // 检查是否是自定义下拉字段的选项key
+                const panel = document.getElementById('panel-' + tabName);
+                if (panel) {
+                    renderSelectOptionList(tabName);
+                }
+            }
+        }
+
+        // ====== 定时器设置 ======
+        function loadTimerSettings() {
+            const timer = settings?.timer;
+            document.getElementById('timerIntervalInput').value = timer.interval;
+            const toggle = document.getElementById('timerEnableToggle');
+            if (timer.enabled !== false) {
+                toggle.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+            }
+        }
+
+        function toggleTimerEnable() {
+            const toggle = document.getElementById('timerEnableToggle');
+            toggle.classList.toggle('active');
+        }
+
+        function saveTimerSettings() {
+            const interval = parseInt(document.getElementById('timerIntervalInput').value) || 3;
+            const toggle = document.getElementById('timerEnableToggle');
+            const isOn = toggle.classList.contains('active');
+
+            if (!settings.timer) settings.timer = {};
+            settings.timer.interval = Math.max(1, Math.min(60, interval));
+            settings.timer.enabled = isOn;
+            saveSettings();
+
+            const hint = document.getElementById('timerSaveHint');
+            hint.classList.add('show');
+            setTimeout(() => { hint.classList.remove('show'); }, 3000);
+
+            // 重启定时器
+            if (typeof startTimer === 'function') {
+                startTimer();
+            }
+            localStorage.setItem('timerUpdate', Date.now().toString());
+            window.location.href = 'index.html';
+        }
+
+        // ====== 初始化 ======
+        renderList('categories', 'categoryList');
+        renderList('statuses', 'statusList');
+        renderList('reasons', 'reasonList');
+        renderList('notePresets', 'notePresetList');
+
+        // 加载字段并渲染自定义下拉Tab
+        loadFields();
+        renderCustomSelectTabs();
+
+        document.querySelectorAll('.tab-item').forEach(el => {
+            el.addEventListener('click', function () {
+                switchTab(this.dataset.tab);
+            });
+        });
+
+        document.querySelectorAll('.add-row input').forEach(input => {
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    const parent = this.closest('.add-row');
+                    const btn = parent.querySelector('.add-btn');
+                    if (btn) btn.click();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
